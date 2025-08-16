@@ -11,10 +11,18 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: "*"  // (for now allow all, later you can restrict to your frontend domain)
+}));
 app.use(morgan('combined'));
 app.use(express.json());
 
+
+app.use(express.static(path.join(__dirname, "frontend/build")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "frontend/build", "index.html"));
+});
 
 
 // -------------------- API ROUTES --------------------

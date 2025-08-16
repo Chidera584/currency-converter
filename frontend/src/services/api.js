@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -10,6 +10,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
 
 // Request interceptor for logging
 api.interceptors.request.use(
