@@ -65,7 +65,7 @@ const Home = () => {
     {
       icon: <Devices />,
       title: 'Responsive Design',
-      description: 'Works perfectly on all devices and screen sizes',
+      description: 'Works perfectly on all devices and screen sizes. Done by GroupA 1 members',
     },
   ];
 
