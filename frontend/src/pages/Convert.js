@@ -137,7 +137,7 @@ const Convert = () => {
             placeholder="Enter amount"
             sx={{ mb: 3 }}
             InputProps={{
-              startAdornment: <Typography sx={{ mr: 1 }}>$</Typography>,
+              startAdornment: <Typography sx={{ mr: 1 }}></Typography>,
             }}
           />
 
