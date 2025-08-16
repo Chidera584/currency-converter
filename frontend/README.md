@@ -1,213 +1,85 @@
-# 💱 Currency Converter Web App
+# Currency Converter Web App
 
-A responsive, modern currency converter web application built with React and Material-UI. Perfect for students, travelers, and anyone who needs quick currency conversions.
+A responsive and user-friendly currency converter that allows users to convert between multiple currencies using real-time exchange rates. Works perfectly on all devices and screen sizes. Developed by **GroupA (10 members)**.
 
-## ✨ Features
+## Features
 
-- **Real-time Exchange Rates**: Live currency conversion with up-to-date rates
-- **170+ Currencies**: Global coverage with major and minor currencies
-- **Responsive Design**: Works perfectly on all devices (mobile, tablet, desktop)
-- **Modern UI**: Beautiful Material-UI interface with smooth animations
-- **Fast & Secure**: Reliable API with 99.9% uptime guarantee
-- **Mobile-First**: Optimized for mobile devices and touch interactions
+- Convert currencies in real-time using reliable APIs.
+- Get the latest exchange rates for a base currency.
+- Health check endpoint to verify backend status.
+- Fully responsive design for desktops, tablets, and mobile devices.
 
-## 🚀 Live Demo
+## Technologies Used
 
-The app is ready for deployment on Netlify, Vercel, or any static hosting service.
+- **Frontend:** React, JavaScript, HTML, CSS
+- **Backend:** Node.js, Express.js
+- **APIs:** [ExchangeRate API](https://api.exchangerate-api.com/)
+- **Deployment:** Railway
 
-## 📱 Screenshots
+## Project Structure
 
-- **Home Page**: Welcome screen with quick actions and server status
-- **Convert Page**: Currency conversion with amount input and currency selection
-- **Rates Page**: View current exchange rates for all available currencies
-- **Settings Page**: App information and server status monitoring
+frontend/ # React frontend code
+backend/ # Node.js + Express backend code
 
-## 🛠️ Tech Stack
+## How It Works
 
-- **Frontend**: React 18.2.0
-- **UI Framework**: Material-UI (MUI) 5.14.0
-- **Routing**: React Router DOM 6.15.0
-- **HTTP Client**: Axios 1.6.0
-- **Build Tool**: Create React App 5.0.1
+1. User selects a source currency, target currency, and amount.
+2. The app sends a request to the backend API.
+3. Backend fetches the latest exchange rates from the external API.
+4. Backend responds with the converted amount and rate.
+5. Frontend displays the result in real-time.
 
-## 📦 Installation
+## API Endpoints
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd currency_converter/frontend
-   ```
+- **GET /api/convert?from=USD&to=EUR&amount=100** – Convert currency.
+- **GET /api/currencies** – Get list of available currencies.
+- **GET /api/rates/:base** – Get exchange rates for a base currency.
+- **GET /api/health** – Health check endpoint.
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+## Known Limitations
 
-3. **Start development server**
-   ```bash
-   npm start
-   ```
+- No database integration; all data comes from external APIs.
+- No user guide included.
+- Limited error handling for invalid or unsupported currencies.
 
-4. **Build for production**
-   ```bash
-   npm run build
-   ```
+## Group Members and Contributions
 
-## 🌐 Deployment
+- **Adeniyi Oluwatomis Marvellous** – Frontend design and responsiveness  
+- **Adeyeye Sewa** – UI/UX design and styling  
+- **Alabi Eyitayo Enekole** – Backend APIs and server logic  
+- **Basanya Basirat Abiodun** – Frontend-backend integration and API testing  
+- **Eromonsele David Odianosen** – Currency conversion logic and rate handling  
+- **Mesigo Chidera Sharon** – React state management and API interactions  
+- **Mpigi Barisua Victoria** – Testing, debugging, and app functionality  
+- **Njoku Kelechi David** – Deployment and environment setup  
+- **Oluyemi Esther Buteh** – Frontend optimization and responsiveness  
+- **Omoloju Olasubomi Ayoade** – Project coordination and troubleshooting  
 
-### Netlify (Recommended)
+## How to Run Locally
 
-1. **Connect to Netlify**
-   - Go to [netlify.com](https://netlify.com)
-   - Sign up/Login with your GitHub account
-   - Click "New site from Git"
+1. Clone the repository:
 
-2. **Configure build settings**
-   - **Build command**: `npm run build`
-   - **Publish directory**: `build`
-   - **Node version**: `18`
+```bash
+git clone <repository-url>
+cd currency_converter
+Install dependencies for both backend and frontend:
 
-3. **Deploy**
-   - Netlify will automatically build and deploy your site
-   - You'll get a live URL like: `https://your-app-name.netlify.app`
 
-### Vercel
+cd backend
+npm install
+cd ../frontend
+npm install
+Start the backend server:
 
-1. **Install Vercel CLI**
-   ```bash
-   npm i -g vercel
-   ```
 
-2. **Deploy**
-   ```bash
-   vercel
-   ```
+cd backend
+npm start
+Start the frontend:
 
-### GitHub Pages
 
-1. **Add homepage to package.json**
-   ```json
-   {
-     "homepage": "https://yourusername.github.io/your-repo-name"
-   }
-   ```
+cd frontend
+npm start
+Open http://localhost:3000 in your browser.
 
-2. **Install gh-pages**
-   ```bash
-   npm install --save-dev gh-pages
-   ```
-
-3. **Add deploy script to package.json**
-   ```json
-   {
-     "scripts": {
-       "deploy": "gh-pages -d build"
-     }
-   }
-   ```
-
-4. **Deploy**
-   ```bash
-   npm run deploy
-   ```
-
-## 📱 Mobile Responsiveness
-
-The app is fully responsive and works great on:
-- **Mobile phones** (320px - 768px)
-- **Tablets** (768px - 1024px)
-- **Desktop** (1024px+)
-
-### Mobile Features
-- Touch-friendly interface
-- Swipe gestures for navigation
-- Optimized for thumb navigation
-- Fast loading on mobile networks
-
-## 🔧 Configuration
-
-### Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-REACT_APP_API_URL=http://localhost:3001
-REACT_APP_API_KEY=your_api_key_here
-```
-
-### API Configuration
-
-The app connects to a backend API for currency conversion. Update the API URL in `src/services/api.js`:
-
-```javascript
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
-```
-
-## 🎨 Customization
-
-### Theme Colors
-
-Modify the theme in `src/App.js`:
-
-```javascript
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#8B2635', // Merlot/Wine
-      dark: '#6B1F2A',
-      light: '#B84A5A',
-    },
-    secondary: {
-      main: '#C17817', // Gold
-      dark: '#9A5F12',
-      light: '#D4A574',
-    },
-  },
-});
-```
-
-### Adding New Pages
-
-1. Create a new component in `src/pages/`
-2. Add the route in `src/App.js`
-3. Update the navigation in `src/components/Navbar.js`
-
-## 🐛 Troubleshooting
-
-### Build Issues
-- Clear node_modules: `rm -rf node_modules && npm install`
-- Clear cache: `npm cache clean --force`
-- Check Node.js version: `node --version` (should be 16+)
-
-### API Issues
-- Check if backend server is running
-- Verify API URL in configuration
-- Check network connectivity
-
-### Mobile Issues
-- Test on different devices
-- Check viewport meta tag
-- Verify touch event handling
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## 📞 Support
-
-For support or questions:
-- Create an issue on GitHub
-- Contact the developer
-- Check the documentation
-
----
-
-**Built with ❤️ for students and travelers worldwide**
+Deployment
+The app is deployed on Railway: https://currency-converter-production-4304.up.railway.app
