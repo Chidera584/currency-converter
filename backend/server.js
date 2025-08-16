@@ -1,67 +1,71 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const axios = require('axios');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(helmet());
-app.use(cors({
-  origin: "*"  // (for now allow all, later you can restrict to your frontend domain)
-}));
+// -------------------- MIDDLEWARE --------------------
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        connectSrc: [
+          "'self'",
+          "http://localhost:3000",
+          "http://localhost:5000",
+          "https://api.exchangerate-api.com",
+          "https://api.exchangerate.host"
+        ],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:"]
+      }
+    }
+  })
+);
+
+app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json());
 
-
-app.use(express.static(path.join(__dirname, "frontend/build")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend/build", "index.html"));
-});
-
-
 // -------------------- API ROUTES --------------------
 
-// Currency conversion endpoint
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Currency conversion
 app.get('/api/convert', async (req, res) => {
   try {
     const { from, to, amount } = req.query;
-    
-    if (!from || !to || !amount) {
-      return res.status(400).json({ 
-        error: 'Missing required parameters: from, to, amount' 
-      });
-    }
+    if (!from || !to || !amount) return res.status(400).json({ error: 'Missing parameters' });
 
-    const response = await axios.get(
-      `https://api.exchangerate-api.com/v4/latest/${from}`
-    );
+    const { data } = await axios.get(`https://api.exchangerate-api.com/v4/latest/${from}`);
+    if (!data || !data.rates) throw new Error('No rates from API');
 
-    const rates = response.data.rates;
-    const rate = rates[to];
-    
-    if (!rate) {
-      return res.status(400).json({ error: 'Invalid currency code' });
-    }
+    const rate = data.rates[to];
+    if (!rate) return res.status(400).json({ error: 'Invalid currency code' });
 
-    const convertedAmount = (parseFloat(amount) * rate).toFixed(2);
-    
     res.json({
       from,
       to,
       amount: parseFloat(amount),
       rate,
-      convertedAmount: parseFloat(convertedAmount),
+      convertedAmount: parseFloat((parseFloat(amount) * rate).toFixed(2)),
       timestamp: new Date().toISOString()
     });
-
-  } catch (error) {
-    console.error('Conversion error:', error);
+  } catch (err) {
+    console.error('Convert error:', err.message);
     res.status(500).json({ error: 'Failed to convert currency' });
   }
 });
@@ -69,21 +73,17 @@ app.get('/api/convert', async (req, res) => {
 // Get available currencies
 app.get('/api/currencies', async (req, res) => {
   try {
-    const response = await axios.get(
-      'https://api.exchangerate-api.com/v4/latest/USD'
-    );
-    
-    const currencies = Object.keys(response.data.rates);
-    currencies.unshift('USD'); // Add USD to the list
-    
-    res.json({
-      currencies: currencies.sort(),
-      timestamp: new Date().toISOString()
-    });
+    const { data } = await axios.get('https://api.exchangerate-api.com/v4/latest/USD');
+    if (!data || !data.rates) throw new Error('No rates from API');
 
-  } catch (error) {
-    console.error('Currencies error:', error);
-    res.status(500).json({ error: 'Failed to fetch currencies' });
+    const currencies = Object.keys(data.rates).sort();
+    res.json({ currencies, timestamp: new Date().toISOString() });
+  } catch (err) {
+    console.error('Currencies error:', err.message);
+
+    // Fallback list so frontend never breaks
+    const fallbackCurrencies = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY"];
+    res.json({ currencies: fallbackCurrencies, timestamp: new Date().toISOString(), note: 'Fallback used' });
   }
 });
 
@@ -91,34 +91,21 @@ app.get('/api/currencies', async (req, res) => {
 app.get('/api/rates/:base', async (req, res) => {
   try {
     const { base } = req.params;
-    const response = await axios.get(
-      `https://api.exchangerate-api.com/v4/latest/${base}`
-    );
-    
-    res.json({
-      base,
-      rates: response.data.rates,
-      timestamp: new Date().toISOString()
-    });
+    const { data } = await axios.get(`https://api.exchangerate-api.com/v4/latest/${base}`);
+    if (!data || !data.rates) throw new Error('No rates from API');
 
-  } catch (error) {
-    console.error('Rates error:', error);
+    res.json({ base, rates: data.rates, timestamp: new Date().toISOString() });
+  } catch (err) {
+    console.error('Rates error:', err.message);
     res.status(500).json({ error: 'Failed to fetch exchange rates' });
   }
 });
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-
-// -------------------- SERVE REACT FRONTEND --------------------
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/build')));
-
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend', 'build', 'index.html'));
-  });
+// -------------------- SERVE FRONTEND --------------------
+const buildPath = path.join(__dirname, '../frontend/build');
+if (fs.existsSync(buildPath)) {
+  app.use(express.static(buildPath));
+  app.get('*', (req, res) => res.sendFile(path.join(buildPath, 'index.html')));
 }
 
 // -------------------- ERROR HANDLING --------------------
@@ -127,7 +114,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
+// -------------------- START SERVER --------------------
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📱 Currency Converter API + Frontend ready!`);
 });

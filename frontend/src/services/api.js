@@ -1,16 +1,20 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
+// Determine API base URL
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL ||
+  (process.env.NODE_ENV === 'production'
+    ? '/api' // use relative path in production (works with your server)
+    : 'http://localhost:5000/api'); // local development
 
-// Create axios instance with default config
+// Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 10000, // 10 seconds
+  headers: { 'Content-Type': 'application/json' },
 });
 
+// -------------------- INTERCEPTORS --------------------
 
 // Request interceptor for logging
 api.interceptors.request.use(
@@ -19,32 +23,36 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('❌ API Request Error:', error);
+    console.error('❌ API Request Error:', error.message);
     return Promise.reject(error);
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor for logging & errors
 api.interceptors.response.use(
   (response) => {
     console.log(`✅ API Response: ${response.status} ${response.config.url}`);
     return response;
   },
   (error) => {
-    console.error('❌ API Response Error:', error.response?.data || error.message);
+    console.error(
+      '❌ API Response Error:',
+      error.response?.status,
+      error.response?.data || error.message
+    );
     return Promise.reject(error);
   }
 );
 
-// Currency conversion API
+// -------------------- API FUNCTIONS --------------------
+
+// Convert currency
 export const convertCurrency = async (from, to, amount) => {
   try {
-    const response = await api.get('/convert', {
-      params: { from, to, amount },
-    });
+    const response = await api.get('/convert', { params: { from, to, amount } });
     return response.data;
   } catch (error) {
-    throw new Error(error.response?.data?.error || 'Failed to convert currency');
+    throw new Error(error.response?.data?.error || error.message || 'Failed to convert currency');
   }
 };
 
@@ -54,7 +62,7 @@ export const getCurrencies = async () => {
     const response = await api.get('/currencies');
     return response.data;
   } catch (error) {
-    throw new Error(error.response?.data?.error || 'Failed to fetch currencies');
+    throw new Error(error.response?.data?.error || error.message || 'Failed to fetch currencies');
   }
 };
 
@@ -64,7 +72,7 @@ export const getExchangeRates = async (baseCurrency) => {
     const response = await api.get(`/rates/${baseCurrency}`);
     return response.data;
   } catch (error) {
-    throw new Error(error.response?.data?.error || 'Failed to fetch exchange rates');
+    throw new Error(error.response?.data?.error || error.message || 'Failed to fetch exchange rates');
   }
 };
 
@@ -74,9 +82,8 @@ export const checkHealth = async () => {
     const response = await api.get('/health');
     return response.data;
   } catch (error) {
-    throw new Error('Backend server is not responding');
+    throw new Error(error.response?.data?.error || error.message || 'Backend server is not responding');
   }
 };
 
 export default api;
-
